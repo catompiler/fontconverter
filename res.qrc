@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/images">
+        <file>icons/Gears-48.png</file>
+    </qresource>
+</RCC>

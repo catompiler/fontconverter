@@ -20,3 +20,6 @@ HEADERS  += mainwindow.h \
     fontconverter.h
 
 FORMS    += mainwindow.ui
+
+RESOURCES += \
+    res.qrc
