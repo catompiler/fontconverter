@@ -96,6 +96,13 @@ private:
 
         ~FontInput(){}
 
+        FontInput& operator=(const FontInput& fi){
+            fileIn = fi.fileIn;
+            firstChar = fi.firstChar;
+            lastChar = fi.lastChar;
+            return *this;
+        }
+
         //! Имя файла шрифта.
         QString fileIn;
         //! Начальный символ.
@@ -132,6 +139,13 @@ private:
 
         ~GlyphData() {}
 
+        GlyphData& operator=(const GlyphData& gd){
+            offset_x = gd.offset_x;
+            offset_y = gd.offset_y;
+            data = gd.data;
+            return *this;
+        }
+
         //! Смещение для рисования по оси X.
         uint32_t offset_x;
         //! Смещение для рисования по оси Y.
@@ -165,6 +179,15 @@ private:
         }
 
         ~FontData() {}
+
+        FontData& operator=(const FontData& fd){
+            char_width = fd.char_width;
+            char_height = fd.char_height;
+            bitmap_width = fd.bitmap_width;
+            bitmap_height = fd.bitmap_height;
+            glyphs = fd.glyphs;
+            return *this;
+        }
 
         //! Начальный символ.
         uint32_t char_from;
@@ -203,6 +226,12 @@ private:
         }
 
         ~GlyphSizeOverride(){}
+
+        GlyphSizeOverride& operator=(const GlyphSizeOverride& gso){
+            pos = gso.pos;
+            size = gso.size;
+            return *this;
+        }
 
         //! Позиция символа.
         QPoint pos;

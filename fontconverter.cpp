@@ -61,10 +61,6 @@ bool FontConverter::convert(const QString& fileName, const QString& fontName) co
         return false;
     }
 
-    /*qSort(inputs->begin(), inputs->end(), [](const FontInput& inl, const FontInput& inr) -> bool{
-        return inl.firstChar < inr.firstChar;
-    });*/
-
     QList<FontData> font_data_list;
 
     for(auto it: *inputs){
@@ -75,10 +71,19 @@ bool FontConverter::convert(const QString& fileName, const QString& fontName) co
         }
     }
 
-    // TODO: Sort list!
-    /*std::sort(font_data_list.begin(), font_data_list.end(), [](const FontData& fdl, const FontData& fdr) -> bool{
-        return fdl.char_from < fdr.char_from;
-    });*/
+    {
+        QList<FontData> font_data_list_sorted;
+        while(!font_data_list.isEmpty()){
+            auto& fd = font_data_list.first();
+
+            auto it = std::lower_bound(font_data_list_sorted.begin(), font_data_list_sorted.end(), fd, [](const FontData& lfd, const FontData& rfd){
+                return lfd.char_from < rfd.char_from;
+            });
+
+            font_data_list_sorted.insert(it, std::move(font_data_list.takeFirst()));
+        }
+        font_data_list.swap(font_data_list_sorted);
+    }
 
     if(!exportFont(file, fontName, &font_data_list)){
         qDebug() << "Error exporting font!";
