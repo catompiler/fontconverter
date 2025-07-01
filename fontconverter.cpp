@@ -75,9 +75,10 @@ bool FontConverter::convert(const QString& fileName, const QString& fontName) co
         }
     }
 
-    std::sort(font_data_list.begin(), font_data_list.end(), [](const FontData& fdl, const FontData& fdr) -> bool{
+    // TODO: Sort list!
+    /*std::sort(font_data_list.begin(), font_data_list.end(), [](const FontData& fdl, const FontData& fdr) -> bool{
         return fdl.char_from < fdr.char_from;
-    });
+    });*/
 
     if(!exportFont(file, fontName, &font_data_list)){
         qDebug() << "Error exporting font!";
@@ -228,8 +229,8 @@ bool FontConverter::exportFont(QFile& outFile, const QString& fontName, QList<Fo
     uint32_t max_char_height = 0;//font_data_list->first().char_height;
 
     std::for_each(font_data_list->begin(), font_data_list->end(), [&max_char_width, &max_char_height](FontConverter::FontData& fd){
-        if(max_char_width > fd.char_width) max_char_width = fd.char_width;
-        if(max_char_height > fd.char_height) max_char_height = fd.char_height;
+        if(max_char_width < fd.char_width) max_char_width = fd.char_width;
+        if(max_char_height < fd.char_height) max_char_height = fd.char_height;
     });
 
     // Export general font data info.
@@ -339,24 +340,33 @@ bool FontConverter::exportFont(QFile& outFile, const QString& fontName, QList<Fo
         part_n ++;
     }
 
+
     // Export font declaration.
-    for(FontData& it: *font_data_list){
-        ts << "\n\n";
+    ts << "\n\n/*" << Qt::endl;
+    ts << "#include \"" << fontName << ".h" << "\"\n\n" << Qt::endl;
 
-        ts << "#include \"" << fontName << ".h" << "\"\n\n" << Qt::endl;
-        ts << "// Font: " << fontName << Qt::endl;
-        //ts << "upFontName" << "_BITMAPS_COUNT";
-    }
+    ts << "// Font bitmaps: " << fontName << Qt::endl;
+    ts << "static const font_bitmap_t " << fontName << "_bitmaps[] = {" << Qt::endl;
+    int cur_part_n = 0;
+    std::for_each(font_data_list->begin(), font_data_list->end(), [&ts, &cur_part_n, &fontName, &upFontName](FontConverter::FontData&){
+        ts << "    make_font_bitmap_descrs("
+           << QString("%1_PART%3_FIRST_CHAR, %1_PART%3_LAST_CHAR, %2_part%3_data, %1_PART%3_WIDTH, %1_PART%3_HEIGHT, %1_PART%3_GRAPHICS_FORMAT, %2_part%3_descrs)").arg(upFontName).arg(fontName).arg(cur_part_n) << "," << Qt::endl;
+        cur_part_n ++;
+    });
+    ts << "};\n" << Qt::endl;
 
-    ts << "static font_t font_" << fontName
+    ts << "// Font: " << fontName << Qt::endl;
+    ts << "static font_t " << fontName
        << " = make_font_defchar("
-       << "font_" << fontName << "_bitmaps, "
+       << "" << fontName << "_bitmaps, "
        << upFontName << "_BITMAPS_COUNT, "
        << upFontName << "_MAX_CHAR_WIDTH, "
        << upFontName << "_MAX_CHAR_HEIGHT, "
        << 0 << ", "
        << upFontName << "_DEF_VSPACE, "
        << upFontName << "_DEF_CHAR);" << Qt::endl;
+
+    ts << "*/" << Qt::endl;
 
     ts << "\n\n#endif\t //" << fontName.toUpper() << "_H\n";
 
